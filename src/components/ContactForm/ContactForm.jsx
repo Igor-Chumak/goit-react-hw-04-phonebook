@@ -7,44 +7,42 @@ import {
   ContactFormSubmit,
 } from './ContactForm.styled';
 
-const INITIAL_STATE = {
-  name: '',
-  number: '',
-};
-
 export const ContactForm = ({ onSubmit }) => {
-  const [dataForm, setDataForm] = useState(INITIAL_STATE);
-
-  const handleChangeInput = e => {
-    const { name, value } = e.target;
-    setDataForm(prevDataForm => {
-      return { ...prevDataForm, ...{ [name]: value } };
-    });
-  };
-
-  const resetState = () => {
-    setDataForm({ ...INITIAL_STATE });
-  };
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
   const handleSubmit = e => {
     e.preventDefault();
     const form = e.currentTarget;
-    if (dataForm.name === '' || dataForm.value === '') {
+    if (name === '' || number === '') {
       return;
     }
-    if (
-      !onSubmit({
-        name: dataForm.name.trim(),
-        number: dataForm.number,
-      })
-    ) {
-      let valueTrim = e.currentTarget.name.value.trim();
-      e.currentTarget.name.value = valueTrim;
-      return;
+    if (onSubmit({ name, number })) {
+      form.reset();
+      setName('');
+      setNumber('');
     }
-    form.reset();
-    resetState();
   };
+
+  // const handleSubmit = e => {
+  //   e.preventDefault();
+  //   const form = e.currentTarget;
+  //   if (dataForm.name === '' || dataForm.value === '') {
+  //     return;
+  //   }
+  //   if (
+  //     !onSubmit({
+  //       name: dataForm.name.trim(),
+  //       number: dataForm.number,
+  //     })
+  //   ) {
+  //     let valueTrim = e.currentTarget.name.value.trim();
+  //     e.currentTarget.name.value = valueTrim;
+  //     return;
+  //   }
+  //   form.reset();
+  //   resetState();
+  // };
 
   return (
     <ContactFormForm onSubmit={handleSubmit}>
@@ -59,7 +57,7 @@ export const ContactForm = ({ onSubmit }) => {
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           placeholder=""
           required
-          onChange={handleChangeInput}
+          onChange={e => setName(e.target.value.trim())}
         />
       </ContactFormLabel>
       <ContactFormLabel>
@@ -73,7 +71,7 @@ export const ContactForm = ({ onSubmit }) => {
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           placeholder=""
           required
-          onChange={handleChangeInput}
+          onChange={e => setNumber(e.target.value)}
         />
       </ContactFormLabel>
       <ContactFormSubmit type="submit">Add contact</ContactFormSubmit>
