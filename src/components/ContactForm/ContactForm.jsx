@@ -24,26 +24,6 @@ export const ContactForm = ({ onSubmit }) => {
     }
   };
 
-  // const handleSubmit = e => {
-  //   e.preventDefault();
-  //   const form = e.currentTarget;
-  //   if (dataForm.name === '' || dataForm.value === '') {
-  //     return;
-  //   }
-  //   if (
-  //     !onSubmit({
-  //       name: dataForm.name.trim(),
-  //       number: dataForm.number,
-  //     })
-  //   ) {
-  //     let valueTrim = e.currentTarget.name.value.trim();
-  //     e.currentTarget.name.value = valueTrim;
-  //     return;
-  //   }
-  //   form.reset();
-  //   resetState();
-  // };
-
   return (
     <ContactFormForm onSubmit={handleSubmit}>
       <ContactFormLabel>
