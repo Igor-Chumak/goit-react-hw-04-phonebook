@@ -17,8 +17,8 @@ export const ContactForm = ({ onSubmit }) => {
 
   const handleChangeInput = e => {
     const { name, value } = e.target;
-    setDataForm({
-      [name]: value,
+    setDataForm(prevDataForm => {
+      return { ...prevDataForm, ...{ [name]: value } };
     });
   };
 
@@ -34,7 +34,7 @@ export const ContactForm = ({ onSubmit }) => {
     }
     if (
       !onSubmit({
-        name: dataForm.trim(),
+        name: dataForm.name.trim(),
         number: dataForm.number,
       })
     ) {
