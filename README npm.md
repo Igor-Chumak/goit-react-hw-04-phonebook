@@ -39,3 +39,5 @@
     wrapperClass="vortex-wrapper"
     colors={['red', 'green', 'blue', 'yellow', 'orange', 'purple']}
   /> -->
+  - npm i react-recipes --save >>> import { useLocalStorage } from
+    "react-recipes";

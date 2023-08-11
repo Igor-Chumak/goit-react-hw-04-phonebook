@@ -1,11 +1,9 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import { ThemeProvider } from 'styled-components';
 import { GlobalStyles, darkTheme, lightTheme, theme } from 'styles';
-import {
-  loadFromLocalStorage,
-  saveToLocalStorage,
-} from 'utilities/localStorage';
+import { useLocalStorage } from 'react-recipes';
+import { loadFromLocalStorage } from 'utilities/localStorage';
 import {
   Header,
   Section,
@@ -17,7 +15,7 @@ import {
   OkButton,
 } from 'components';
 
-const INITIAL_STATE = [
+const INITIAL_CONTACTS = [
   { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
   { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
   { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
@@ -25,129 +23,123 @@ const INITIAL_STATE = [
 ];
 
 const localStorageKey = 'phonebook';
+const localStorage_contacts = loadFromLocalStorage(localStorageKey) ?? [];
+const initial_contacts = !localStorage_contacts.length
+  ? [...INITIAL_CONTACTS]
+  : [...localStorage_contacts];
+
 const localStorageTheme = localStorageKey + '_theme';
+const modeThemeInit =
+  loadFromLocalStorage(localStorageTheme) === 'dark' ? 'dark' : 'light';
 
-export class App extends Component {
-  state = {
-    contacts: [...INITIAL_STATE],
-    filter: '',
-    modeTheme: 'light',
-    notification: '',
+export const App = () => {
+  const [modeTheme, setModeTheme] = useLocalStorage(
+    localStorageTheme,
+    modeThemeInit
+  );
+
+  const [contacts, setContacts] = useLocalStorage(
+    localStorageKey,
+    initial_contacts
+  );
+
+  const [filter, setFilter] = useState('');
+  const [notification, setNotification] = useState('');
+
+  //   useEffect(() => {
+
+  // }, [contacts]);
+
+  // componentDidUpdate(_, prevState) {
+  //   if (this.state.contacts !== prevState.contacts) {
+  //     saveToLocalStorage(localStorageKey, this.state.contacts);
+  //   }
+
+  const handleToggleTheme = () => {
+    setModeTheme(prevModeTheme =>
+      prevModeTheme === 'light' ? 'dark' : 'light'
+    );
   };
 
-  componentDidMount() {
-    const contactsLocalStorage = loadFromLocalStorage(localStorageKey);
-    if (contactsLocalStorage) {
-      this.setState({ contacts: [...contactsLocalStorage] });
-    }
-    const themeLocalStorage = loadFromLocalStorage(localStorageTheme);
-    if (themeLocalStorage === 'light' || themeLocalStorage === 'dark') {
-      this.setState({ modeTheme: themeLocalStorage });
-    }
-  }
-
-  componentDidUpdate(_, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      saveToLocalStorage(localStorageKey, this.state.contacts);
-    }
-    if (this.state.modeTheme !== prevState.modeTheme) {
-      saveToLocalStorage(localStorageTheme, this.state.modeTheme);
-    }
-  }
-
-  handleToggleTheme = () => {
-    this.setState(prevState => {
-      return {
-        modeTheme: prevState.modeTheme === 'light' ? 'dark' : 'light',
-      };
-    });
-  };
-
-  onSubmit = dataForm => {
-    const searchResult = this.searchContact(dataForm);
+  const onSubmit = dataForm => {
+    const searchResult = searchContact(dataForm);
     if (!searchResult) {
-      this.setState(prevState => ({
-        contacts: [{ id: nanoid(), ...dataForm }, ...prevState.contacts],
-      }));
+      setContacts(prevState => [
+        { id: nanoid(), ...dataForm },
+        ...prevState.contacts,
+      ]);
       return true;
     } else {
-      this.setState({
-        notification: `${searchResult.name} : ${searchResult.number} is already in contacts`,
-      });
+      setNotification(
+        `${searchResult.name} : ${searchResult.number} is already in contacts`
+      );
       return false;
     }
   };
 
-  handleOkButton = () => {
-    this.setState({
-      notification: '',
-    });
+  const handleOkButton = () => {
+    setNotification('');
   };
 
-  searchContact = ({ name }) => {
-    const { contacts } = this.state;
+  const searchContact = ({ name }) => {
     return contacts.find(
       contact => contact.name.toLowerCase() === name.toLowerCase()
     );
   };
 
-  handleChangeInputFilter = e => {
+  const handleChangeInputFilter = e => {
     const inputFilter = document.getElementById('filter');
     const { value } = e.target;
     let valueNormalize = value.toLowerCase();
     inputFilter.value = valueNormalize;
-    this.setState({
-      filter: valueNormalize,
-    });
+    setFilter(valueNormalize);
   };
 
-  createContactsToList = () => {
-    return this.state.contacts.filter(contact =>
-      contact.name.toLowerCase().includes(this.state.filter)
+  const createContactsToList = () => {
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filter)
     );
   };
 
-  deleteContactsFromList = idItem => {
-    return this.setState(prevValue => ({
-      contacts: prevValue.contacts.filter(item => item.id !== idItem),
-    }));
+  const deleteContactsFromList = idItem => {
+    return setContacts(prevValue =>
+      prevValue.contacts.filter(item => item.id !== idItem)
+    );
   };
 
-  render() {
-    return (
-      <ThemeProvider
-        theme={{
-          ...theme,
-          ...(this.state.modeTheme === 'light' ? lightTheme : darkTheme),
-        }}
-      >
-        <GlobalStyles />
-        <Header>
-          <CreateThemeSwitcher
-            handleToggleTheme={this.handleToggleTheme}
-            modeTheme={this.state.modeTheme === 'light' ? false : true}
+  return (
+    <ThemeProvider
+      theme={{
+        ...theme,
+        ...(modeTheme === 'light' ? lightTheme : darkTheme),
+      }}
+    >
+      <GlobalStyles />
+      <Header>
+        <CreateThemeSwitcher
+          handleToggleTheme={handleToggleTheme}
+          modeTheme={modeTheme === 'light' ? false : true}
+        />
+      </Header>
+      <main>
+        <Section title="Phonebook">
+          <ContactForm onSubmit={onSubmit} />
+          {notification && (
+            <Notification message={notification}>
+              <OkButton type="button" onClick={handleOkButton}>
+                OK
+              </OkButton>
+            </Notification>
+          )}
+        </Section>
+        <Section title="Contacts">
+          <Filter handleChangeInputFilter={handleChangeInputFilter} />
+          <ContactList
+            contactsToList={createContactsToList()}
+            deleteContactsFromList={deleteContactsFromList}
           />
-        </Header>
-        <main>
-          <Section title="Phonebook">
-            <ContactForm onSubmit={this.onSubmit} />
-            {this.state.notification && (
-              <Notification message={this.state.notification}>
-                <OkButton type="button" onClick={this.handleOkButton}>
-                  OK
-                </OkButton>
-              </Notification>
-            )}
-          </Section>
-          <Section title="Contacts">
-            <Filter handleChangeInputFilter={this.handleChangeInputFilter} />
-            <ContactList
-              contactsToList={this.createContactsToList()}
-              deleteContactsFromList={this.deleteContactsFromList}
-            />
-          </Section>
-        </main>
-      </ThemeProvider>
-    );
-  }
-}
+        </Section>
+      </main>
+    </ThemeProvider>
+  );
+};
