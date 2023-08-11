@@ -29,14 +29,9 @@ const initial_contacts = !localStorage_contacts.length
   : [...localStorage_contacts];
 
 const localStorageTheme = localStorageKey + '_theme';
-const modeThemeInit =
-  loadFromLocalStorage(localStorageTheme) === 'dark' ? 'dark' : 'light';
 
 export const App = () => {
-  const [modeTheme, setModeTheme] = useLocalStorage(
-    localStorageTheme,
-    modeThemeInit
-  );
+  const [modeTheme, setModeTheme] = useLocalStorage(localStorageTheme);
 
   const [contacts, setContacts] = useLocalStorage(
     localStorageKey,
@@ -46,28 +41,16 @@ export const App = () => {
   const [filter, setFilter] = useState('');
   const [notification, setNotification] = useState('');
 
-  //   useEffect(() => {
-
-  // }, [contacts]);
-
-  // componentDidUpdate(_, prevState) {
-  //   if (this.state.contacts !== prevState.contacts) {
-  //     saveToLocalStorage(localStorageKey, this.state.contacts);
-  //   }
-
   const handleToggleTheme = () => {
     setModeTheme(prevModeTheme =>
-      prevModeTheme === 'light' ? 'dark' : 'light'
+      prevModeTheme === 'dark' ? 'light' : 'dark'
     );
   };
 
   const onSubmit = dataForm => {
     const searchResult = searchContact(dataForm);
     if (!searchResult) {
-      setContacts(prevState => [
-        { id: nanoid(), ...dataForm },
-        ...prevState.contacts,
-      ]);
+      setContacts(prevState => [{ id: nanoid(), ...dataForm }, ...prevState]);
       return true;
     } else {
       setNotification(
@@ -103,7 +86,7 @@ export const App = () => {
 
   const deleteContactsFromList = idItem => {
     return setContacts(prevValue =>
-      prevValue.contacts.filter(item => item.id !== idItem)
+      prevValue.filter(item => item.id !== idItem)
     );
   };
 
@@ -111,14 +94,14 @@ export const App = () => {
     <ThemeProvider
       theme={{
         ...theme,
-        ...(modeTheme === 'light' ? lightTheme : darkTheme),
+        ...(modeTheme === 'dark' ? darkTheme : lightTheme),
       }}
     >
       <GlobalStyles />
       <Header>
         <CreateThemeSwitcher
           handleToggleTheme={handleToggleTheme}
-          modeTheme={modeTheme === 'light' ? false : true}
+          modeTheme={modeTheme === 'dark' ? true : false}
         />
       </Header>
       <main>
